@@ -65,7 +65,6 @@ const User = sequelize.define("User", {
   },
   transactionPin: {
     type: STRING,
-    allowNull: true,
     validate: {
       len: {
         args: [4, 4],
@@ -75,7 +74,6 @@ const User = sequelize.define("User", {
   },
   avatar: {
     type: STRING,
-    allowNull: true,
   },
   is2FAEnabled: {
     type: BOOLEAN,
@@ -128,7 +126,6 @@ const Transaction = sequelize.define("Transaction", {
   },
   code: {
     type: STRING,
-    allowNull: true,
   },
   status: {
     type: ENUM("PENDING", "COMPLETED", "CANCELLED"),
@@ -144,7 +141,6 @@ const Transaction = sequelize.define("Transaction", {
   },
   debitWalletId: {
     type: UUID,
-    allowNull: true,
   },
 });
 
@@ -152,12 +148,10 @@ Wallet.belongsTo(User, { foreignKey: "userId", onDelete: "cascade" });
 Transaction.belongsTo(Wallet, {
   as: "creditWallet",
   foreignKey: "creditWalletId",
-  onDelete: "cascade",
 });
 Transaction.belongsTo(Wallet, {
   as: "debitWallet",
   foreignKey: "debitWalletId",
-  onDelete: "cascade",
 });
 
 sequelize
