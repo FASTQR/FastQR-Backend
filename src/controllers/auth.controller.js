@@ -33,7 +33,6 @@ const register = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
@@ -62,6 +61,15 @@ const login = async (req, res, next) => {
       },
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+const logout = async (req, res, next) => {
+  try {
+    res.clearCookie("token");
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
     console.log(error);
     next(error);
   }
@@ -70,4 +78,5 @@ const login = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  logout,
 };
