@@ -68,16 +68,6 @@ const User = sequelize.define(
     },
     transactionPin: {
       type: STRING,
-      validate: {
-        isNumeric: {
-          args: true,
-          msg: "Invalid Transaction Pin!",
-        },
-        len: {
-          args: [4, 4],
-          msg: "Transaction Pin must be 4 digits!",
-        },
-      },
     },
     avatar: {
       type: STRING,
@@ -194,6 +184,11 @@ User.prototype.createJWT = function () {
 
 User.prototype.comparePassword = async function (password) {
   const isMatch = await bcrypt.compare(password, this.passwordHash);
+  return isMatch;
+};
+
+User.prototype.compareTransactionPin = async function (transactionPin) {
+  const isMatch = await bcrypt.compare(transactionPin, this.transactionPin);
   return isMatch;
 };
 

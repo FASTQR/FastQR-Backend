@@ -4,7 +4,8 @@ const createWalletPin = async (req, res, next) => {
   const userId = req.params.userId;
   const { pin } = req.body;
   try {
-    const walletPin = createPin(userId, pin);
+    const walletPin = await createPin(userId, pin);
+    console.log(walletPin);
 
     return res.status(201).json({
       message: "Transaction pin created successfully",
@@ -20,7 +21,7 @@ const updateWalletPin = async (req, res, next) => {
   const { currentPin, pin } = req.body;
 
   try {
-    const walletPin = updatePin(userId, currentPin, pin);
+    const walletPin =  await updatePin(userId, currentPin, pin);
 
     return res.status(201).json({
       message: "Transaction pin updated successfully",
