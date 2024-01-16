@@ -32,6 +32,14 @@ async function createPin(userId, pin) {
   return user;
 }
 
-async function updatePin(userId, currentPin, newPin) {}
+/**
+ * Update a transaction pin for a specific user.
+ * @param {string} userId - The ID of the user for whom the pin should be created.
+ * @param {string} currentPin - The user's current pin.
+ * @param {string} pin - The pin to be created.
+ * @throws {BadRequestError} Will throw a BadRequestError if any required field is missing or if validations fail.
+ * @returns {Promise<User>} A Promise that resolves to the updated user with the updated pin.
+ */
+async function updatePin(userId, currentPin, pin) {}
 
 module.exports = { createPin, updatePin };

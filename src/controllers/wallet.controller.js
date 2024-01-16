@@ -17,10 +17,10 @@ const createWalletPin = async (req, res, next) => {
 
 const updateWalletPin = async (req, res, next) => {
   const userId = req.params.userId;
-  const { currentPin, newPin } = req.body;
+  const { currentPin, pin } = req.body;
 
   try {
-    const walletPin = updatePin(userId, currentPin, newPin);
+    const walletPin = updatePin(userId, currentPin, pin);
 
     return res.status(201).json({
       message: "Transaction pin updated successfully",
