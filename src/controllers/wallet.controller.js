@@ -8,9 +8,6 @@ const createWalletPin = async (req, res, next) => {
 
     return res.status(201).json({
       message: "Transaction pin created successfully",
-      walletPin: {
-        pin: walletPin.pin,
-      },
     });
   } catch (error) {
     console.log(error);
@@ -27,9 +24,6 @@ const updateWalletPin = async (req, res, next) => {
 
     return res.status(201).json({
       message: "Transaction pin updated successfully",
-      walletPin: {
-        pin: walletPin.pin,
-      },
     });
   } catch (error) {
     console.log(error);
