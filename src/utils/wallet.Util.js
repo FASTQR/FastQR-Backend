@@ -61,8 +61,6 @@ async function updatePin(userId, currentPin, pin) {
     throw new BadRequestError("Invalid Credentials");
   }
 
-  console.log("correct");
-
   const pinRegex = /^\d{4}$/;
   if (!pinRegex.test(pin)) {
     throw new BadRequestError("Invalid pin");
@@ -71,7 +69,7 @@ async function updatePin(userId, currentPin, pin) {
   user.transactionPin = pin;
   await user.save();
 
-  return user;
+  return;
 }
 
 module.exports = { createPin, updatePin };
