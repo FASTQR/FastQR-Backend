@@ -1,14 +1,13 @@
 const errorHandlerMiddleware = (err, req, res, next) => {
   try {
     let customError = {
-      statusCode: err.statusCode || 500, // Default to internal server error
+      statusCode: err.statusCode || 500,
       msg: err.message || "Something went wrong, try again later",
     };
 
-    // Handle PostgreSQL specific errors
     if (err.name === "SequelizeUniqueConstraintError") {
       // Unique constraint violation (e.g., duplicate key)
-      customError.msg = "Duplicate value entered, please choose another value";
+      customError.msg = err.errors[0].message || "Duplicate value entered";
       customError.statusCode = 400; // Bad Request
     } else if (err.name === "SequelizeValidationError") {
       // Sequelize validation error

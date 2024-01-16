@@ -3,6 +3,7 @@ const app = express();
 const { readdirSync } = require("fs");
 const path = require("path");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const { sequelize } = require("./src/config/database_config");
 const errorHandlerMiddleware = require("./src/middlewares/error_Handler");
 const notFoundMiddleware = require("./src/middlewares/not_Found");
@@ -11,6 +12,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerOptions = require("./src/swagger");
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "src")));
 app.use(express.urlencoded({ extended: false }));
 app.use(
@@ -23,7 +25,7 @@ app.use(
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOptions));
 
 readdirSync("./src/routes").map((routePath) => {
-  if (routePath === "auth.js") {
+  if (routePath === "auth.route.js") {
     return app.use("/api/v1", require(`./src/routes/${routePath}`));
   }
   app.use("/api/v1", /* authenticate */ require(`./src/routes/${routePath}`));

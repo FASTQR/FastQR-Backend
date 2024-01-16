@@ -1,89 +1,130 @@
 const { sequelize } = require("../config/database_config");
 const { DataTypes } = require("sequelize");
-const { STRING, INTEGER, DATE, ENUM, UUID, UUIDV4, BOOLEAN } = DataTypes;
+const { STRING, INTEGER, ENUM, UUID, UUIDV4, BOOLEAN } = DataTypes;
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const User = sequelize.define("User", {
-  id: {
-    type: UUID,
-    defaultValue: UUIDV4,
-    allowNull: false,
-    primaryKey: true,
-  },
-  firstName: {
-    type: STRING,
-    allowNull: false,
-    validate: {
-      isAlpha: {
+const User = sequelize.define(
+  "User",
+  {
+    id: {
+      type: UUID,
+      defaultValue: UUIDV4,
+      allowNull: false,
+      primaryKey: true,
+    },
+    firstName: {
+      type: STRING,
+      allowNull: false,
+      validate: {
+        isAlpha: {
+          args: true,
+          msg: "Invalid First Name!",
+        },
+      },
+    },
+    lastName: {
+      type: STRING,
+      allowNull: false,
+      validate: {
+        isAlpha: {
+          args: true,
+          msg: "Invalid Last Name!",
+        },
+      },
+    },
+    phone: {
+      type: STRING,
+      allowNull: true,
+      unique: {
         args: true,
-        msg: "Invalid First Name!",
+        msg: "Phone Number already in use!",
+      },
+      validate: {
+        isNumeric: {
+          args: true,
+          msg: "Invalid Phone Number!",
+        },
       },
     },
-  },
-  lastName: {
-    type: STRING,
-    allowNull: false,
-    validate: {
-      isAlpha: {
+    email: {
+      type: STRING,
+      allowNull: false,
+      unique: {
         args: true,
-        msg: "Invalid Last Name!",
+        msg: "Email Address already in use!",
+      },
+      validate: {
+        isEmail: {
+          args: true,
+          msg: "Invalid Email Address!",
+        },
       },
     },
-  },
-  phone: {
-    type: STRING,
-    allowNull: true,
-    unique: {
-      args: true,
-      msg: "Phone Number already in use!",
+    passwordHash: {
+      type: STRING,
+      allowNull: false,
     },
-    validate: {
-      isNumeric: {
-        args: true,
-        msg: "Invalid Phone Number!",
+    transactionPin: {
+      type: STRING,
+      validate: {
+        isNumeric: {
+          args: true,
+          msg: "Invalid Transaction Pin!",
+        },
+        len: {
+          args: [4, 4],
+          msg: "Transaction Pin must be 4 digits!",
+        },
       },
     },
-  },
-  email: {
-    type: STRING,
-    allowNull: false,
-    unique: {
-      args: true,
-      msg: "Email Address already in use!",
+    avatar: {
+      type: STRING,
     },
-    validate: {
-      isEmail: {
-        args: true,
-        msg: "Invalid Email Address!",
+    is2FAEnabled: {
+      type: BOOLEAN,
+      defaultValue: false,
+    },
+    country: {
+      type: STRING,
+      allowNull: false,
+    },
+    countryCode: {
+      type: STRING,
+      allowNull: false,
+    },
+    role: {
+      type: ENUM("ADMIN", "USER"),
+      defaultValue: "USER",
+    },
+  },
+  {
+    hooks: {
+      beforeCreate: async (user) => {
+        user.firstName = user.firstName.toLowerCase();
+        user.lastName = user.lastName.toLowerCase();
+        const salt = await bcrypt.genSalt(10);
+        user.passwordHash = await bcrypt.hash(user.passwordHash, salt);
+        if (user.transactionPin) {
+          user.transactionPin = await bcrypt.hash(user.transactionPin, salt);
+        }
+      },
+      beforeUpdate: async (user) => {
+        user.firstName = user.firstName.toLowerCase();
+        user.lastName = user.lastName.toLowerCase();
+        if (user.changed("passwordHash")) {
+          const salt = await bcrypt.genSalt(10);
+          user.passwordHash = await bcrypt.hash(user.passwordHash, salt);
+        }
+        if (user.changed("transactionPin")) {
+          const salt = await bcrypt.genSalt(10);
+          user.transactionPin = await bcrypt.hash(user.transactionPin, salt);
+        }
       },
     },
-  },
-  passwordHash: {
-    type: STRING,
-    allowNull: false,
-  },
-  transactionPin: {
-    type: STRING,
-    validate: {
-      len: {
-        args: [4, 4],
-        msg: "Invalid Transaction Pin",
-      },
-    },
-  },
-  avatar: {
-    type: STRING,
-  },
-  is2FAEnabled: {
-    type: BOOLEAN,
-    defaultValue: false,
-  },
-  role: {
-    type: ENUM("ADMIN", "USER"),
-    defaultValue: "USER",
-  },
-});
+  }
+);
 
 const Wallet = sequelize.define(
   "Wallet",
@@ -123,6 +164,7 @@ const Transaction = sequelize.define("Transaction", {
   type: {
     type: ENUM("QRCODE", "OTHER"),
     allowNull: false,
+    defaultValue: "QRCODE",
   },
   code: {
     type: STRING,
@@ -143,6 +185,18 @@ const Transaction = sequelize.define("Transaction", {
     type: UUID,
   },
 });
+
+User.prototype.createJWT = function () {
+  return jwt.sign({ userId: this.id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+
+User.prototype.comparePassword = async function (password) {
+  const isMatch = await bcrypt.compare(password, this.passwordHash);
+  console.log(isMatch);
+  return isMatch;
+};
 
 Wallet.belongsTo(User, { foreignKey: "userId", onDelete: "cascade" });
 Transaction.belongsTo(Wallet, {
