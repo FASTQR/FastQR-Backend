@@ -169,10 +169,11 @@ const Transaction = sequelize.define("Transaction", {
   },
   creditWalletId: {
     type: UUID,
-    allowNull: false,
+    allowNull: true,
   },
   debitWalletId: {
     type: UUID,
+    allowNull: true,
   },
 });
 
@@ -192,7 +193,8 @@ User.prototype.compareTransactionPin = async function (transactionPin) {
   return isMatch;
 };
 
-Wallet.belongsTo(User, { foreignKey: "userId", onDelete: "cascade" });
+User.hasOne(Wallet, { foreignKey: "userId" });
+Wallet.belongsTo(User, { foreignKey: "userId" });
 Transaction.belongsTo(Wallet, {
   as: "creditWallet",
   foreignKey: "creditWalletId",
