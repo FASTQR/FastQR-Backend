@@ -99,4 +99,25 @@ async function fetchSingleTransaction(transactionId) {
   return transactionDetails;
 }
 
-module.exports = { fetchUserTransactions, fetchSingleTransaction };
+async function generateTransaction(userId, amount, narration) {
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  // Create a new transaction
+  const transaction = await Transaction.create({
+    amount,
+    narration,
+    debitWalletId: user.Wallet.id,
+  });
+
+  return transaction;
+}
+
+module.exports = {
+  fetchUserTransactions,
+  fetchSingleTransaction,
+  generateTransaction,
+};

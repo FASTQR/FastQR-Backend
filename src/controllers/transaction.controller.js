@@ -1,6 +1,7 @@
 const {
   fetchUserTransactions,
   fetchSingleTransaction,
+  generateTransaction,
 } = require("../utils/transaction.Util");
 
 const getAllUserTransactions = async (req, res, next) => {
@@ -24,6 +25,22 @@ const getSingleTransaction = async (req, res, next) => {
 
     return res.status(200).json({
       msg: "Transaction fetched successfully",
+      transaction,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// generate payment request
+const generatePaymentRequest = async (req, res, next) => {
+  const { userId } = req.params;
+  const { amount, narration } = req.body;
+  try {
+    const transaction = await generateTransaction(userId, amount, narration);
+
+    return res.status(200).json({
+      msg: "Payment request generated successfully",
       transaction,
     });
   } catch (error) {
