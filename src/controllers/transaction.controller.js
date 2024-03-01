@@ -2,6 +2,7 @@ const {
   fetchUserTransactions,
   fetchSingleTransaction,
   generateTransaction,
+  sendPayment,
 } = require("../utils/transaction.Util");
 
 const getAllUserTransactions = async (req, res, next) => {
@@ -48,4 +49,24 @@ const generatePaymentRequest = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUserTransactions, getSingleTransaction };
+const processPayment = async (req, res, next) => {
+  const { userId } = req.params;
+  const { base64String } = req.body;
+  try {
+    const transaction = await sendPayment(userId, base64String);
+
+    return res.status(200).json({
+      msg: "Payment request generated successfully",
+      transaction,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getAllUserTransactions,
+  getSingleTransaction,
+  generatePaymentRequest,
+  processPayment,
+};
