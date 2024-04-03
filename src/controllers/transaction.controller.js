@@ -4,16 +4,19 @@ const {
   generateTransaction,
   sendPayment,
 } = require("../utils/transaction.Util");
+const { ResponseHandler } = require("../utils/responseHandler");
 
 const getAllUserTransactions = async (req, res, next) => {
   const { userId } = req.params;
   try {
     const transactions = await fetchUserTransactions(userId);
 
-    return res.status(200).json({
-      msg: "Transactions fetched successfully",
+    ResponseHandler.success(
+      res,
       transactions,
-    });
+      200,
+      "Transactions fetched successfully"
+    );
   } catch (error) {
     next(error);
   }
@@ -24,10 +27,12 @@ const getSingleTransaction = async (req, res, next) => {
   try {
     const transaction = await fetchSingleTransaction(transactionId);
 
-    return res.status(200).json({
-      msg: "Transaction fetched successfully",
+    ResponseHandler.success(
+      res,
       transaction,
-    });
+      200,
+      "Transactions fetched successfully"
+    );
   } catch (error) {
     next(error);
   }
@@ -40,10 +45,12 @@ const generatePaymentRequest = async (req, res, next) => {
   try {
     const transaction = await generateTransaction(userId, amount, narration);
 
-    return res.status(200).json({
-      msg: "Payment request generated successfully",
+    ResponseHandler.success(
+      res,
       transaction,
-    });
+      200,
+      "Payment Request generated successfully"
+    );
   } catch (error) {
     next(error);
   }
@@ -55,10 +62,12 @@ const processPayment = async (req, res, next) => {
   try {
     const transaction = await sendPayment(userId, base64String);
 
-    return res.status(200).json({
-      msg: "Payment request generated successfully",
+    ResponseHandler.success(
+      res,
       transaction,
-    });
+      200,
+      "Payment Request generated successfully"
+    );
   } catch (error) {
     next(error);
   }

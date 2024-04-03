@@ -1,4 +1,5 @@
 const { createUser, loginUser } = require("../utils/auth.Util");
+const { ResponseHandler } = require("../utils/responseHandler");
 
 const register = async (req, res, next) => {
   const {
@@ -22,16 +23,15 @@ const register = async (req, res, next) => {
       countryCode
     );
 
-    return res.status(201).json({
-      message: "User created successfully",
-      user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phoneNumber: user.phone,
-        countryCode: user.countryCode,
-      },
-    });
+    newUser = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phone,
+      countryCode: user.countryCode,
+    };
+
+    ResponseHandler.success(res, newUser, 201, "User registered successfully");
   } catch (error) {
     next(error);
   }
@@ -50,16 +50,15 @@ const login = async (req, res, next) => {
       sameSite: "Strict",
     });
 
-    res.status(200).json({
-      message: "Login successful",
-      user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phoneNumber: user.phone,
-        countryCode: user.countryCode,
-      },
-    });
+    const loggedInUser = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phone,
+      countryCode: user.countryCode,
+    };
+
+    ResponseHandler.success(res, user, 200, "Login successful");
   } catch (error) {
     next(error);
   }
@@ -68,7 +67,7 @@ const login = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     res.clearCookie("token");
-    res.status(200).json({ message: "Logout successful" });
+    ResponseHandler.success(res, user, 200, "Logout successful");
   } catch (error) {
     console.log(error);
     next(error);
