@@ -195,8 +195,7 @@ async function updateUserPassword(email, data, otp) {
     throw new BadRequestError("Invalid OTP");
   }
 
-  const hashedPassword = await bcrypt.hash(data.password, 12);
-  const updatedUser = await user.update({ password: hashedPassword });
+  const updatedUser = await user.update({ passwordHash: data.password });
   return updatedUser;
 }
 
