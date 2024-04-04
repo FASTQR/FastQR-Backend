@@ -5,8 +5,6 @@ const { generateOTP } = require("./generateToken");
 const bcrypt = require("bcrypt");
 const { InternalServerError } = require("../errors/index");
 
-
-
 /**
  * Create a new user and store the information in the database.
  *
@@ -152,25 +150,23 @@ async function updateVerifiedStatus(userId, data) {
  * @throws {NotFoundError} If the user is not found or the credentials are invalid.
  */
 async function resetUserPassword(email) {
-  async function resetUserPassword(email) {
-    if (!email) {
-      throw new BadRequestError("Email is required");
-    }
+  if (!email) {
+    throw new BadRequestError("Email is required");
+  }
 
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      throw new NotFoundError("User not found");
-    }
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
 
-    const otp = await generateOTP(user.id);
-    if (!otp) {
-      throw new InternalServerError("Error generating token");
-    }
+  const otp = await generateOTP(user.id);
+  if (!otp) {
+    throw new InternalServerError("Error generating token");
+  }
 
-    const emailResponse = await sendOtpToEmail(user, otp, "password");
-    if (!emailResponse) {
-      throw new InternalServerError("Error sending email");
-    }
+  const emailResponse = await sendOtpToEmail(user, otp, "password");
+  if (!emailResponse) {
+    throw new InternalServerError("Error sending email");
   }
 }
 

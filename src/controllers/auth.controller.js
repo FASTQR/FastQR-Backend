@@ -5,7 +5,7 @@ const {
   updateVerifiedStatus,
   updateUserPassword,
 } = require("../utils/auth.Util");
-const { sendOtpEmail, verificationEmail } = require("../utils/emailUtil");
+const { verificationEmail } = require("../utils/emailUtil");
 const { generateOTP, verifyOTP } = require("../utils/generateToken");
 const { ResponseHandler } = require("../utils/responseHandler");
 const { InternalServerError } = require("../errors/index");
