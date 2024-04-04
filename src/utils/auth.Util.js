@@ -1,5 +1,11 @@
 const { User } = require("../model/model");
 const { BadRequestError, NotFoundError } = require("../errors/index");
+const { sendOtpToEmail, verifyOtp } = require("./emailUtil");
+const { generateOTP } = require("./generateToken");
+const bcrypt = require("bcrypt");
+const { InternalServerError } = require("../errors/index");
+
+
 
 /**
  * Create a new user and store the information in the database.
@@ -56,6 +62,11 @@ async function createUser(
     );
   }
 
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  if (!emailRegex.test(email)) {
+    throw new BadRequestError("Invalid email address");
+  }
+
   const existingUser = await User.findOne({
     where: { email: email, phone: phoneNumber },
   });
@@ -74,6 +85,8 @@ async function createUser(
     countryCode: countryCode,
   });
 
+  console.log("user", user);
+
   return user;
 }
 
@@ -87,6 +100,11 @@ async function createUser(
  * @throws {NotFoundError} If the user is not found or the credentials are invalid.
  */
 async function loginUser(email, password) {
+  if (!email || !password) {
+    throw new BadRequestError("Please Enter an Email or Password");
+  }
+  email = email.toLowerCase();
+  console.log(email);
   const user = await User.findOne({ where: { email: email } });
 
   if (!user) {
@@ -99,9 +117,97 @@ async function loginUser(email, password) {
     throw new BadRequestError("Invalid Credentials");
   }
 
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  if (!emailRegex.test(email)) {
+    throw new BadRequestError("Invalid email address");
+  }
+
   return user;
 }
 
+/**
+ * Update the verification status of a user on the User Model.
+ *
+ * @param {string} userId - The ID of the user.
+ * @param {object} data - The data to update (isVerified property).
+ * @returns {Promise<import('../model/User')>} A Promise that resolves to the updated user.
+ * @throws {NotFoundError} If the user is not found.
+ */
+async function updateVerifiedStatus(userId, data) {
+  const user = await User.findByPk(userId);
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
 
+  const updatedUser = await user.update(data);
+  return updatedUser;
+}
 
-module.exports = { createUser, loginUser };
+/**
+ * Reset the password of a user.
+ *
+ * @param {string} email - The email address of the user.
+ * @returns {Promise<import('../model/User')>} A Promise that resolves to the user whose password was reset.
+ * @throws {BadRequestError} If required fields are not provided.
+ * @throws {NotFoundError} If the user is not found or the credentials are invalid.
+ */
+async function resetUserPassword(email) {
+  async function resetUserPassword(email) {
+    if (!email) {
+      throw new BadRequestError("Email is required");
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    const otp = await generateOTP(user.id);
+    if (!otp) {
+      throw new InternalServerError("Error generating token");
+    }
+
+    const emailResponse = await sendOtpToEmail(user, otp, "password");
+    if (!emailResponse) {
+      throw new InternalServerError("Error sending email");
+    }
+  }
+}
+
+/**
+ * Update the password of a user.
+ *
+ * @param {string} email - The email address of the user.
+ * @param {object} data - The data to update  (password).
+ * @param {string} otp - The OTP sent to the user's email.
+ * @returns {Promise<import('../model/User')>} A Promise that resolves to the updated user.
+ * @throws {BadRequestError} If required fields are not provided.
+ * @throws {NotFoundError} If the user is not found.
+ */
+async function updateUserPassword(email, data, otp) {
+  if (!email || !data.password || !otp) {
+    throw new BadRequestError("OTP, email, and password are required");
+  }
+
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  const isOtpValid = await verifyOtp(otp, user.id);
+  if (!isOtpValid) {
+    throw new BadRequestError("Invalid OTP");
+  }
+
+  const hashedPassword = await bcrypt.hash(data.password, 12);
+  const updatedUser = await user.update({ password: hashedPassword });
+  return updatedUser;
+}
+
+module.exports = {
+  createUser,
+  loginUser,
+  resetUserPassword,
+  updateVerifiedStatus,
+  updateUserPassword,
+};

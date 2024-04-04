@@ -84,6 +84,10 @@ const User = sequelize.define(
       type: STRING,
       allowNull: false,
     },
+    isVerified: {
+      type: BOOLEAN,
+      defaultValue: false,
+    },
     role: {
       type: ENUM("ADMIN", "USER"),
       defaultValue: "USER",
@@ -177,6 +181,23 @@ const Transaction = sequelize.define("Transaction", {
   },
 });
 
+const OTP = sequelize.define("OTP", {
+  id: {
+    type: UUID,
+    defaultValue: UUIDV4,
+    allowNull: false,
+    primaryKey: true,
+  },
+  userId: {
+    type: UUID,
+    allowNull: false,
+  },
+  otp: {
+    type: INTEGER,
+    allowNull: false,
+  },
+});
+
 User.prototype.createJWT = function () {
   return jwt.sign({ userId: this.id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -203,6 +224,8 @@ Transaction.belongsTo(Wallet, {
   as: "debitWallet",
   foreignKey: "debitWalletId",
 });
+User.hasOne(OTP, { foreignKey: "userId" });
+OTP.belongsTo(User, { foreignKey: "userId" });
 
 sequelize
   .sync({ alter: true })
@@ -213,4 +236,4 @@ sequelize
     console.log("Database Sync Failed", error);
   });
 
-module.exports = { User, Wallet, Transaction };
+module.exports = { User, Wallet, Transaction, OTP };
