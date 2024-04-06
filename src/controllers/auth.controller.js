@@ -40,20 +40,12 @@ const register = async (req, res, next) => {
       user,
       await generateOTP(user.id)
     );
-    console.log("verficationEmailResponse", verficationEmailResponse);
 
     if (!verficationEmailResponse) {
       throw new InternalServerError("Email not sent");
     }
 
-    const newUser = {
-      userId: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phoneNumber: user.phone,
-      countryCode: user.countryCode,
-    };
+    const { passwordHash, transactionPin, ...newUser } = user.dataValues;
 
     ResponseHandler.success(res, newUser, 201, "User registered successfully");
   } catch (error) {

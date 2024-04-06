@@ -2,7 +2,6 @@ const { OTP, User } = require("../model/model");
 const { BadRequestError, NotFoundError } = require("../errors/index");
 
 const generateOTP = async (userId) => {
-  console.log("Generating OTP for user", userId);
   const otp = Math.floor(1000 + Math.random() * 9000);
   const user = await User.findByPk(userId);
   if (!user) {
@@ -13,21 +12,18 @@ const generateOTP = async (userId) => {
     otp,
     userId,
   };
-  console.log("OTP data", otpData);
 
   try {
     const [updatedOTP, created] = await OTP.upsert(otpData);
-    console.log("Updated OTP", updatedOTP);
 
     if (!created) {
-      console.log("OTP already existed");
+      console.log("OTP already exists, updating...");
+      await OTP.update(otpData, { where: { userId } });
     }
 
-    console.log("OTP generated successfully", otp);
     return otp;
   } catch (error) {
-    console.error("Error generating OTP:", error);
-    throw new Error("Failed to generate OTP");
+    console.log("Error generating OTP:", error);
   }
 };
 
@@ -42,7 +38,6 @@ const verifyOTP = async (userId, otp) => {
     throw new BadRequestError("Invalid OTP");
   }
 
-  // Delete the OTP after successful verification
   await OTP.destroy({ where: { userId } });
 
   return true;

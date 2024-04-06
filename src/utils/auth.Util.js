@@ -2,7 +2,6 @@ const { User } = require("../model/model");
 const { BadRequestError, NotFoundError } = require("../errors/index");
 const { sendOtpToEmail, verifyOtp } = require("./emailUtil");
 const { generateOTP } = require("./generateToken");
-const bcrypt = require("bcrypt");
 const { InternalServerError } = require("../errors/index");
 
 /**
@@ -82,8 +81,6 @@ async function createUser(
     phone: phoneNumber,
     countryCode: countryCode,
   });
-
-  console.log("user", user);
 
   return user;
 }
