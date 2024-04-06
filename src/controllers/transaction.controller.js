@@ -1,10 +1,39 @@
 const {
+  createPin,
+  updatePin,
   fetchUserTransactions,
   fetchSingleTransaction,
   generateTransaction,
   sendPayment,
 } = require("../utils/transaction.Util");
 const { ResponseHandler } = require("../utils/responseHandler");
+
+const createTransactionPin = async (req, res, next) => {
+  const userId = req.params.userId;
+  const { pin } = req.body;
+  try {
+    const walletPin = await createPin(userId, pin);
+
+    ResponseHandler.success(res, 201, "Transaction pin created successfully");
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+const updateTransactionPin = async (req, res, next) => {
+  const userId = req.params.userId;
+  const { currentPin, pin } = req.body;
+
+  try {
+    const updatedWalletPin = await updatePin(userId, currentPin, pin);
+
+    ResponseHandler.success(res, 201, "Transaction pin updated successfully");
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
 
 const getAllUserTransactions = async (req, res, next) => {
   const { userId } = req.params;
@@ -74,6 +103,8 @@ const processPayment = async (req, res, next) => {
 };
 
 module.exports = {
+  createTransactionPin,
+  updateTransactionPin,
   getAllUserTransactions,
   getSingleTransaction,
   generatePaymentRequest,

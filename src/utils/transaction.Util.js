@@ -5,6 +5,77 @@ const { NotFoundError, BadRequestError } = require("../errors");
 const QRCode = require("qrcode");
 
 /**
+ * Create a transaction pin for a specific user.
+ * @param {string} userId - The ID of the user for whom the pin should be created.
+ * @param {string} pin - The pin to be created.
+ * @throws {BadRequestError} Will throw a BadRequestError if any required field is missing or if validations fail.
+ * @returns {Promise<User>} A Promise that resolves to the updated user with the created pin.
+ */
+async function createPin(userId, pin) {
+  if (!userId || !pin) {
+    throw new BadRequestError(
+      `Missing required field: ${!userId ? "userId" : "Pin"}`
+    );
+  }
+
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
+
+  const pinRegex = /^\d{4}$/;
+  if (!pinRegex.test(pin)) {
+    throw new BadRequestError("Invalid pin");
+  }
+
+  user.transactionPin = pin;
+  await user.save();
+
+  return;
+}
+
+/**
+ * Update a transaction pin for a specific user.
+ * @param {string} userId - The ID of the user for whom the pin should be updated.
+ * @param {string} currentPin - The user's current pin.
+ * @param {string} pin - The pin to be created.
+ * @throws {BadRequestError} Will throw a BadRequestError if any required field is missing or if validations fail.
+ * @returns {Promise<User>} A Promise that resolves to the updated user with the updated pin.
+ */
+async function updatePin(userId, currentPin, pin) {
+  if (!userId || !currentPin || !pin) {
+    throw new BadRequestError(
+      `Missing required field: ${
+        !userId ? "userId" : !currentPin ? "currentPin" : "Pin"
+      }`
+    );
+  }
+
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
+
+  const isTransactionPinValid = await user.compareTransactionPin(currentPin);
+
+  if (!isTransactionPinValid) {
+    throw new BadRequestError("Invalid Credentials");
+  }
+
+  const pinRegex = /^\d{4}$/;
+  if (!pinRegex.test(pin)) {
+    throw new BadRequestError("Invalid pin");
+  }
+
+  user.transactionPin = pin;
+  await user.save();
+
+  return;
+}
+
+/**
  * Fetch all transactions for a specific user.
  *
  * @param {string} userId - The ID of the user for whom transactions should be fetched.
@@ -22,6 +93,8 @@ async function fetchUserTransactions(userId) {
         transaction: t,
       });
 
+      console.log("user", user);
+
       if (!user) {
         throw new NotFoundError("User not found");
       }
@@ -33,26 +106,43 @@ async function fetchUserTransactions(userId) {
             { debitWalletId: user.Wallet.id },
           ],
         },
+        include: [
+          {
+            model: Wallet,
+            as: "creditWallet",
+            attributes: ["id", "balance"],
+          },
+          {
+            model: Wallet,
+            as: "debitWallet",
+            attributes: ["id", "balance"],
+          },
+        ],
         transaction: t,
       });
 
       const formattedTransactions = transactions.map((transaction) => {
-        const type =
-          transaction.creditWalletId === user.Wallet.id ? "credit" : "debit";
         return {
           id: transaction.id,
-          type,
           amount: transaction.amount,
+          status: transaction.status,
           narration: transaction.narration,
           createdAt: transaction.createdAt,
           updatedAt: transaction.updatedAt,
+          type: transaction.creditWalletId ? "credit" : "debit",
+          wallet: {
+            id: transaction.creditWalletId
+              ? transaction.creditWallet.id
+              : transaction.debitWallet.id,
+            balance: transaction.creditWalletId
+              ? transaction.creditWallet.balance
+              : transaction.debitWallet.balance,
+          },
         };
       });
 
       return formattedTransactions;
     });
-
-    return result;
   } catch (error) {
     throw error;
   }
@@ -209,6 +299,8 @@ async function sendPayment(userId, base64String) {
 }
 
 module.exports = {
+  createPin,
+  updatePin,
   fetchUserTransactions,
   fetchSingleTransaction,
   generateTransaction,
