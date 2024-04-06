@@ -99,7 +99,6 @@ async function loginUser(email, password) {
     throw new BadRequestError("Please Enter an Email or Password");
   }
   email = email.toLowerCase();
-  console.log(email);
   const user = await User.findOne({ where: { email: email } });
 
   if (!user) {
@@ -113,6 +112,7 @@ async function loginUser(email, password) {
   }
 
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
   if (!emailRegex.test(email)) {
     throw new BadRequestError("Invalid email address");
   }
@@ -135,7 +135,10 @@ async function updateVerifiedStatus(userId, data) {
   }
 
   const updatedUser = await user.update(data);
-  return updatedUser;
+
+  const { passwordHash, transactionPin, ...updatedUserData } = user.dataValues;
+
+  return updatedUserData;
 }
 
 /**

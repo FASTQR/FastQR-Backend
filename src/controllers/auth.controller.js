@@ -66,14 +66,7 @@ const login = async (req, res, next) => {
       sameSite: "Strict",
     });
 
-    const loggedInUser = {
-      userId: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phoneNumber: user.phone,
-      countryCode: user.countryCode,
-    };
+    const { passwordHash, transactionPin, ...loggedInUser } = user.dataValues;
 
     ResponseHandler.success(res, loggedInUser, 200, "Login successful");
   } catch (error) {
