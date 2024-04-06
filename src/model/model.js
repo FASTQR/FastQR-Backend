@@ -116,6 +116,16 @@ const User = sequelize.define(
           user.transactionPin = await bcrypt.hash(user.transactionPin, salt);
         }
       },
+      afterCreate: async (user, options) => {
+        try {
+          const wallet = await Wallet.create({
+            userId: user.id,
+          });
+          console.log(`Wallet created for user with ID: ${user.id}`);
+        } catch (error) {
+          console.error("Error creating wallet:", error);
+        }
+      },
     },
   }
 );
