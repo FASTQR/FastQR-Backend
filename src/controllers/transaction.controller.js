@@ -12,9 +12,14 @@ const createTransactionPin = async (req, res, next) => {
   const userId = req.params.userId;
   const { pin } = req.body;
   try {
-    const walletPin = await createPin(userId, pin);
+    const transactionPin = await createPin(userId, pin);
 
-    ResponseHandler.success(res, 201, "Transaction pin created successfully");
+    ResponseHandler.success(
+      res,
+      null,
+      201,
+      "Transaction pin created successfully"
+    );
   } catch (error) {
     console.log(error);
     next(error);
@@ -28,7 +33,12 @@ const updateTransactionPin = async (req, res, next) => {
   try {
     const updatedWalletPin = await updatePin(userId, currentPin, pin);
 
-    ResponseHandler.success(res, 201, "Transaction pin updated successfully");
+    ResponseHandler.success(
+      res,
+      null,
+      201,
+      "Transaction pin updated successfully"
+    );
   } catch (error) {
     console.log(error);
     next(error);
