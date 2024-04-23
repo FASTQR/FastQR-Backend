@@ -17,7 +17,8 @@ app.use(express.static(path.join(__dirname, "src")));
 app.use(express.urlencoded({ extended: false }));
 app.use(
   cors({
-    origin: "https://fastqr.vercel.app",
+    // origin: "https://fastqr.vercel.app",
+    origin: "*",
     credentials: true,
   })
 );
@@ -38,7 +39,7 @@ app.get("/", (req, res) => {
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3100;
 
 app.listen(PORT, () => {
   console.log(`FASTQR Server is running on PORT: ${PORT}.`);
